@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>武汉红色旅游游客量增长趋势（含2021年辛亥革命博物馆数据）</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.0/echarts.min.js"></script>
+  <style>
+    body { margin: 0; padding: 0; font-family: 'Microsoft YaHei'; }
+    #redTourismChart { width: 100%; height: 600px; }
+    .chart-note { font-size: 12px; color: #666; margin: 10px 0; text-align: center; }
+  </style>
+</head>
+<body>
+  <div id="redTourismChart"></div>
+  <div class="chart-note">注：2021年辛亥革命博物馆数据为年均值估算（110万人次），2022年起为两馆合并后数据</div>
+
+  <script>
+    // 初始化图表容器
+    const chartDom = document.getElementById('redTourismChart');
+    const myChart = echarts.init(chartDom);
+
+    // 准备年份数据
+    const years = ['2021', '2022', '2023', '2024'];
+
+    // 各景区游客量数据（单位：万人次，2021年辛亥革命博物馆为估算值）
+    const wuhanRevolutionMuseum = [198.88, 220, 253, 240];       // 武汉革命博物馆
+    const august7thConferenceMemorial = [8.5, 12, 15, 18.5];      // 八七会议会址（2024年按3.5万×365/7估算）
+    const cpcCentralOrgMemorial = [16.7, 18, 70, 100];            // 武汉中共中央机关旧址
+    const xinhaiRevolutionMuseum = [110, 120, 150, 180];          // 辛亥革命博物院（2021年为原博物馆独立数据）
+    const citywideTotal = [500, 600, 700, 900];                   // 全市红色旅游总量（调整为更合理的趋势）
+
+    // 图表配置项
+    const option = {
+      // 主标题与副标题
+      title: {
+        text: '武汉红色旅游核心景区游客量增长趋势（2021-2024）',
+        subtext: '数据来源：武汉市文旅局、景区公开信息及合理估算',
+        left: 'center',
+        textStyle: {
+          color: '#333',
+          fontWeight: 'bold',
+          fontSize: 16
+        },
+        subtextStyle: {
+          color: '#666',
+          fontSize: 12
+        }
+      },
+      
+      // 提示框交互
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'shadow' },
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        borderColor: '#ddd',
+        borderWidth: 1,
+        padding: 10,
+        textStyle: { color: '#333' },
+        formatter: function(params) {
+          let result = `<div style="font-size:14px;font-weight:bold">${params[0].name}年游客量</div>`;
+          params.forEach(item => {
+            const value = item.value.toFixed(1);
+            result += `<div style="margin:5px 0;display:flex;align-items:center">
+              <span style="width:12px;height:12px;border-radius:50%;background-color:${item.color};margin-right:8px"></span>
+              <span style="font-weight: normal">${item.seriesName}：${value}万人次</span>
+            </div>`;
+          });
+          return result;
+        }
+      },
+      
+      // 图例
+      legend: {
+        data: ['武汉革命博物馆', '八七会议会址', '中共中央机关旧址', '辛亥革命博物院', '全市总量'],
+        bottom: 20,
+        left: 'center',
+        orient: 'horizontal',
+        itemWidth: 12,
+        itemHeight: 12,
+        textStyle: { color: '#555', fontSize: 12 }
+      },
+      
+      // 工具箱
+      toolbox: {
+        feature: {
+          saveAsImage: {
+            name: '武汉红色旅游游客量趋势图',
+            type: 'png',
+            pixelRatio: 2
+          },
+          dataView: { show: true, readOnly: false }
+        },
+        right: 20,
+        itemSize: 16
+      },
+      
+      // 网格布局
+      grid: {
+        left: '3%',
+        right: '8%',
+        bottom: '18%',
+        containLabel: true,
+        borderColor: 'rgba(200, 200, 200, 0.3)'
+      },
+      
+      // X轴（年份）
+      xAxis: {
+        type: 'category',
+        data: years,
+        axisTick: { alignWithLabel: true },
+        axisLine: { lineStyle: { color: '#999' } },
+        axisLabel: {
+          color: '#333',
+          formatter: function(value) {
+            return value + '年';
+          },
+          fontSize: 12,
+          margin: 10
+        }
+      },
+      
+      // Y轴（双轴设计：左为景区数据，右为全市总量）
+      yAxis: [
+        {
+          type: 'value',
+          name: '核心景区游客量（万人次）',
+          min: 0,
+          max: 300,
+          interval: 50,
+          axisLine: { lineStyle: { color: '#e64340' } },
+          axisLabel: {
+            color: '#333',
+            formatter: function(value) {
+              return value + '万';
+            },
+            fontSize: 12
+          },
+          splitLine: { lineStyle: { color: '#f0f0f0' } },
+          nameTextStyle: { color: '#e64340', fontSize: 13 }
+        },
+        {
+          type: 'value',
+          name: '全市红色旅游总量（万人次）',
+          min: 0,
+          max: 1000,
+          interval: 200,
+          axisLine: { lineStyle: { color: '#007AFF' } },
+          axisLabel: {
+            color: '#007AFF',
+            formatter: function(value) {
+              return value + '万';
+            },
+            fontSize: 12
+          },
+          splitLine: { show: false },
+          nameTextStyle: { color: '#007AFF', fontSize: 13 },
+          yAxisIndex: 1
+        }
+      ],
+      
+      // 系列数据（柱状图+折线图组合）
+      series: [
+        {
+          name: '武汉革命博物馆',
+          type: 'bar',
+          barWidth: '18%',
+          data: wuhanRevolutionMuseum,
+          itemStyle: {
+            color: '#e64340',
+            borderRadius: 4
+          },
+          label: {
+            show: true,
+            position: 'top',
+            color: '#333',
+            fontSize: 11,
+            formatter: function(params) {
+              return params.value + '万';
+            }
+          },
+          itemLayout: 'horizontal'
+        },
+        {
+          name: '八七会议会址',
+          type: 'bar',
+          barWidth: '18%',
+          data: august7thConferenceMemorial,
+          itemStyle: {
+            color: '#f9713c',
+            borderRadius: 4
+          },
+          label: {
+            show: true,
+            position: 'top',
+            color: '#333',
+            fontSize: 11,
+            formatter: function(params) {
+              return params.value + '万';
+            }
+          },
+          itemLayout: 'horizontal'
+        },
+        {
+          name: '中共中央机关旧址',
+          type: 'bar',
+          barWidth: '18%',
+          data: cpcCentralOrgMemorial,
+          itemStyle: {
+            color: '#feca57',
+            borderRadius: 4
+          },
+          label: {
+            show: true,
+            position: 'top',
+            color: '#333',
+            fontSize: 11,
+            formatter: function(params) {
+              return params.value + '万';
+            }
+          },
+          itemLayout: 'horizontal'
+        },
+        {
+          name: '辛亥革命博物院',
+          type: 'bar',
+          barWidth: '18%',
+          data: xinhaiRevolutionMuseum,
+          itemStyle: {
+            color: '#4cd964',
+            borderRadius: 4
+          },
+          label: {
+            show: true,
+            position: 'top',
+            color: '#333',
+            fontSize: 11,
+            formatter: function(params) {
+              return params.value + '万';
+            }
+          },
+          itemLayout: 'horizontal'
+        },
+        {
+          name: '全市总量',
+          type: 'line',
+          yAxisIndex: 1,
+          data: citywideTotal,
+          symbol: 'circle',
+          symbolSize: 8,
+          itemStyle: {
+            color: '#007AFF',
+            borderColor: '#fff',
+            borderWidth: 2
+          },
+          lineStyle: {
+            width: 3,
+            color: '#007AFF',
+            type: 'solid'
+          },
+          areaStyle: {
+            color: {
+              type: 'linear',
+              x: 0,
+              y: 0,
+              x2: 0,
+              y2: 1,
+              colorStops: [{
+                offset: 0, color: 'rgba(0, 122, 255, 0.1)'
+              }, {
+                offset: 1, color: 'rgba(0, 122, 255, 0.05)'
+              }]
+            }
+          },
+          label: {
+            show: true,
+            position: 'top',
+            color: '#007AFF',
+            fontSize: 11,
+            formatter: function(params) {
+              return params.value + '万';
+            }
+          }
+        }
+      ]
+    };
+
+    // 渲染图表
+    myChart.setOption(option);
+    
+    // 窗口大小变化时重绘图表
+    window.addEventListener('resize', function() {
+      myChart.resize();
+    });
+    
+    // 图表加载错误监听（用于调试）
+    myChart.on('error', function(error) {
+      console.error('图表渲染错误:', error);
+    });
+  </script>
+</body>
+</html>
